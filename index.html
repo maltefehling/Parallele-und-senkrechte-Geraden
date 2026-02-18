@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Interaktives Werkzeug zur Untersuchung von Schnittwinkeln zwischen Geraden und der Steigungsbedingung für Senkrechte.">
+    <meta name="author" content="Fehling">
+    
+    <!-- OpenGraph für Social Media & GitHub Preview -->
+    <meta property="og:title" content="Schnittwinkel-Explorer | Mathe-Tool von Fehling">
+    <meta property="og:description" content="Interaktive Geraden und Winkelberechnung direkt im Browser.">
+    <meta property="og:type" content="website">
+
+    <title>Schnittwinkel-Explorer | Mathe-Tool von Fehling</title>
+
+    <!-- Emoji als Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📐</text></svg>">
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --secondary: #dc2626;
+            --accent: #059669;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #1e293b;
+        }
+
+        body { 
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; 
+            background: var(--bg); 
+            color: var(--text);
+            margin: 0; 
+            padding: 10px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center;
+            height: 100vh;
+            overflow: hidden; 
+            touch-action: manipulation;
+        }
+
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            display: flex; 
+            flex-direction: column;
+            height: 100%;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 5px;
+        }
+
+        h2 { 
+            margin: 0; 
+            font-size: 1.4rem; 
+            color: var(--text); 
+            font-weight: 800; 
+        }
+
+        .author {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #64748b;
+            font-style: italic;
+        }
+
+        /* Side-by-Side Layout für iPad/Desktop */
+        .main-layout {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            flex: 1;
+            min-height: 0; 
+            align-items: center;
+            justify-content: center;
+            padding-bottom: 10px;
+        }
+
+        .canvas-container {
+            flex: 1.2;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--card);
+            padding: 10px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            max-height: 85vh;
+        }
+
+        canvas { 
+            border: 1px solid #e2e8f0;
+            border-radius: 8px; 
+            max-height: 100%; 
+            max-width: 100%;
+            height: auto;
+            width: auto;
+            aspect-ratio: 1 / 1;
+        }
+
+        .side-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            max-width: 400px;
+        }
+
+        .badge-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .angle-badge {
+            background: var(--card);
+            padding: 8px 15px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 2px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .product-badge {
+            font-size: 0.95rem;
+            color: #64748b;
+            background: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .highlight-special {
+            border-color: var(--accent);
+            background: #ecfdf5;
+            color: var(--accent);
+        }
+
+        .controls { 
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .control-group { 
+            background: var(--card); 
+            padding: 12px 15px; 
+            border-radius: 12px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-top: 5px solid #ccc;
+        }
+
+        .g1 { border-color: var(--primary); }
+        .g2 { border-color: var(--secondary); }
+
+        .formula { 
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem; 
+            font-weight: bold; 
+            margin-bottom: 8px; 
+            display: block;
+        }
+
+        .fixed-info {
+            font-size: 0.75rem;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+
+        label { 
+            display: flex; 
+            justify-content: space-between;
+            font-size: 0.85rem;
+            font-weight: 600; 
+            color: #64748b; 
+        }
+
+        input[type=range] { 
+            width: 100%; 
+            margin: 8px 0;
+            accent-color: var(--primary);
+            height: 30px; 
+        }
+
+        .g2 input[type=range] { accent-color: var(--secondary); }
+
+        @media (max-width: 768px) {
+            .main-layout {
+                flex-direction: column;
+                overflow-y: auto;
+            }
+            body {
+                overflow: auto;
+            }
+            .canvas-container {
+                flex: none;
+                width: 100%;
+                max-height: 40vh;
+            }
+            .side-panel {
+                max-width: none;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h2>Schnittwinkel-Explorer</h2>
+            <p class="author">von Fehling</p>
+        </header>
+
+        <div class="main-layout">
+            <div class="canvas-container">
+                <canvas id="grid" width="500" height="500"></canvas>
+            </div>
+
+            <div class="side-panel">
+                <div class="badge-group">
+                    <div id="angle-box" class="angle-badge">Schnittwinkel: 0.0°</div>
+                    <div id="product-box" class="angle-badge product-badge">Produkt: m₁ · m₂ = 0.50</div>
+                </div>
+
+                <div class="controls">
+                    <div class="control-group g1">
+                        <span class="fixed-info">c₁ = 1.0</span>
+                        <div class="formula" id="f1" style="color: var(--primary);">y = 1.0x + 1.0</div>
+                        
+                        <label>Steigung m₁: <span id="v-m1">1.0</span></label>
+                        <input type="range" id="m1" min="-5" max="5" step="0.1" value="1">
+                    </div>
+
+                    <div class="control-group g2">
+                        <span class="fixed-info">c₂ = -1.0</span>
+                        <div class="formula" id="f2" style="color: var(--secondary);">y = 0.5x - 1.0</div>
+                        
+                        <label>Steigung m₂: <span id="v-m2">0.5</span></label>
+                        <input type="range" id="m2" min="-5" max="5" step="0.1" value="0.5">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('grid');
+        const ctx = canvas.getContext('2d');
+        const angleBox = document.getElementById('angle-box');
+        const productBox = document.getElementById('product-box');
+        const scale = 40; 
+        const width = canvas.width;
+        const height = canvas.height;
+        const centerX = width / 2;
+        const centerY = height / 2;
+
+        const C1 = 1.0;
+        const C2 = -1.0;
+
+        function updateLabels(m1, m2) {
+            document.getElementById('v-m1').innerText = m1.toFixed(1);
+            document.getElementById('v-m2').innerText = m2.toFixed(1);
+            document.getElementById('f1').innerText = `y = ${m1.toFixed(1)}x + ${C1.toFixed(1)}`;
+            document.getElementById('f2').innerText = `y = ${m2.toFixed(1)}x - ${Math.abs(C2).toFixed(1)}`;
+            
+            const product = m1 * m2;
+            productBox.innerText = `Produkt: m₁ · m₂ = ${product.toFixed(2)}`;
+            
+            // Markierung wenn senkrecht
+            if (Math.abs(product + 1) < 0.05) {
+                productBox.classList.add('highlight-special');
+            } else {
+                productBox.classList.remove('highlight-special');
+            }
+        }
+
+        function draw() {
+            const m1 = parseFloat(document.getElementById('m1').value);
+            const m2 = parseFloat(document.getElementById('m2').value);
+
+            updateLabels(m1, m2);
+            ctx.clearRect(0, 0, width, height);
+            drawGrid();
+            drawLine(m1, C1, "#2563eb");
+            drawLine(m2, C2, "#dc2626");
+
+            if (Math.abs(m1 - m2) < 0.001) {
+                angleBox.innerText = "Parallel (0°)";
+                angleBox.className = "angle-badge";
+            } else {
+                const xS = (C2 - C1) / (m1 - m2);
+                const yS = m1 * xS + C1;
+                const cX = centerX + xS * scale;
+                const cY = centerY - yS * scale;
+
+                const denominator = 1 + m1 * m2;
+                let angleDeg;
+                if (Math.abs(denominator) < 0.01) {
+                    angleDeg = 90;
+                } else {
+                    const rad = Math.atan(Math.abs((m2 - m1) / denominator));
+                    angleDeg = (rad * 180) / Math.PI;
+                }
+
+                angleBox.innerText = `Schnittwinkel: ${angleDeg.toFixed(1)}°`;
+                const isSenkrecht = Math.abs(angleDeg - 90) < 0.1;
+                angleBox.classList.toggle('highlight-special', isSenkrecht);
+                if(isSenkrecht) angleBox.innerText = "Senkrecht: 90.0° (m₁·m₂ = -1)";
+
+                if (cX >= 0 && cX <= width && cY >= 0 && cY <= height) {
+                    drawAngleArc(cX, cY, m1, m2);
+                    ctx.beginPath();
+                    ctx.arc(cX, cY, 5, 0, Math.PI * 2);
+                    ctx.fillStyle = "black";
+                    ctx.fill();
+                }
+            }
+        }
+
+        function drawGrid() {
+            ctx.beginPath();
+            ctx.strokeStyle = "#f1f5f9";
+            ctx.lineWidth = 1;
+            for(let i = 0; i <= width; i += scale) {
+                ctx.moveTo(i, 0); ctx.lineTo(i, height);
+                ctx.moveTo(0, i); ctx.lineTo(width, i);
+            }
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.strokeStyle = "#94a3b8";
+            ctx.lineWidth = 2;
+            ctx.moveTo(centerX, 0); ctx.lineTo(centerX, height);
+            ctx.moveTo(0, centerY); ctx.lineTo(width, centerY);
+            ctx.stroke();
+            ctx.font = "10px sans-serif";
+            ctx.fillStyle = "#94a3b8";
+            ctx.fillText("0", centerX + 5, centerY + 15);
+        }
+
+        function drawLine(m, c, color) {
+            ctx.save();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            const xLeft = -centerX / scale;
+            const xRight = centerX / scale;
+            const yLeft = m * xLeft + c;
+            const yRight = m * xRight + c;
+            ctx.moveTo(centerX + xLeft * scale, centerY - yLeft * scale);
+            ctx.lineTo(centerX + xRight * scale, centerY - yRight * scale);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        function drawAngleArc(x, y, m1, m2) {
+            const a1 = -Math.atan(m1);
+            const a2 = -Math.atan(m2);
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.arc(x, y, 35, a1, a2, m1 < m2); 
+            ctx.fillStyle = "rgba(5, 150, 105, 0.2)";
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(x, y, 35, a1, a2, m1 < m2);
+            ctx.strokeStyle = "#059669";
+            ctx.setLineDash([2, 2]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        ['m1', 'm2'].forEach(id => document.getElementById(id).addEventListener('input', draw));
+        draw();
+    </script>
+</body>
+</html>
