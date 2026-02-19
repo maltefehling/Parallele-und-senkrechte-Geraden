@@ -8,7 +8,7 @@
     
     <!-- OpenGraph für Social Media & GitHub Preview -->
     <meta property="og:title" content="Schnittwinkel-Explorer | Mathe-Tool von Fehling">
-    <meta property="og:description" content="Interaktive Geraden und Winkelberechnung direkt im Browser.">
+    <meta property="og:description" content="Interaktive Geraden und Winkelberechnung mit Präzisionssteuerung.">
     <meta property="og:type" content="website">
 
     <title>Schnittwinkel-Explorer | Mathe-Tool von Fehling</title>
@@ -67,7 +67,6 @@
             font-style: italic;
         }
 
-        /* Side-by-Side Layout für iPad/Desktop */
         .main-layout {
             display: flex;
             flex-direction: row;
@@ -181,11 +180,42 @@
             font-size: 0.85rem;
             font-weight: 600; 
             color: #64748b; 
+            margin-bottom: 5px;
+        }
+
+        /* Container für Slider + Buttons */
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step-btn {
+            width: 44px;
+            height: 44px;
+            border: 1px solid #cbd5e1;
+            background: #f8fafc;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--text);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .step-btn:active {
+            background: #e2e8f0;
+            transform: scale(0.95);
         }
 
         input[type=range] { 
-            width: 100%; 
-            margin: 8px 0;
+            flex: 1;
+            margin: 0;
             accent-color: var(--primary);
             height: 30px; 
         }
@@ -232,20 +262,30 @@
                 </div>
 
                 <div class="controls">
+                    <!-- Gerade 1 -->
                     <div class="control-group g1">
                         <span class="fixed-info">c₁ = 1.0</span>
                         <div class="formula" id="f1" style="color: var(--primary);">y = 1.0x + 1.0</div>
                         
                         <label>Steigung m₁: <span id="v-m1">1.0</span></label>
-                        <input type="range" id="m1" min="-5" max="5" step="0.1" value="1">
+                        <div class="input-row">
+                            <button class="step-btn" onclick="adjust('m1', -0.1)">−</button>
+                            <input type="range" id="m1" min="-5" max="5" step="0.1" value="1">
+                            <button class="step-btn" onclick="adjust('m1', 0.1)">+</button>
+                        </div>
                     </div>
 
+                    <!-- Gerade 2 -->
                     <div class="control-group g2">
                         <span class="fixed-info">c₂ = -1.0</span>
                         <div class="formula" id="f2" style="color: var(--secondary);">y = 0.5x - 1.0</div>
                         
                         <label>Steigung m₂: <span id="v-m2">0.5</span></label>
-                        <input type="range" id="m2" min="-5" max="5" step="0.1" value="0.5">
+                        <div class="input-row">
+                            <button class="step-btn" onclick="adjust('m2', -0.1)">−</button>
+                            <input type="range" id="m2" min="-5" max="5" step="0.1" value="0.5">
+                            <button class="step-btn" onclick="adjust('m2', 0.1)">+</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -266,6 +306,17 @@
         const C1 = 1.0;
         const C2 = -1.0;
 
+        // Hilfsfunktion zur präzisen Anpassung über Buttons
+        function adjust(id, delta) {
+            const el = document.getElementById(id);
+            let val = parseFloat(el.value);
+            val = Math.round((val + delta) * 10) / 10;
+            if (val >= -5 && val <= 5) {
+                el.value = val;
+                draw();
+            }
+        }
+
         function updateLabels(m1, m2) {
             document.getElementById('v-m1').innerText = m1.toFixed(1);
             document.getElementById('v-m2').innerText = m2.toFixed(1);
@@ -275,7 +326,7 @@
             const product = m1 * m2;
             productBox.innerText = `Produkt: m₁ · m₂ = ${product.toFixed(2)}`;
             
-            // Markierung wenn senkrecht
+            // Markierung wenn senkrecht (m1*m2 = -1)
             if (Math.abs(product + 1) < 0.05) {
                 productBox.classList.add('highlight-special');
             } else {
